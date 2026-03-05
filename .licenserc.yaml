@@ -1,0 +1,67 @@
+# Configuration for skywalking-eyes (license header enforcement).
+# REPLACE: copyright-owner and content year/owner if needed.
+#
+# USAGE:
+#   Check:  docker run --rm -v $(pwd):/github/workspace ghcr.io/apache/skywalking-eyes/license-eye:eb0e0b091ea41213f712f622797e37526ca1e5d6 -v info -c .licenserc.yaml header check
+#   Fix:    docker run --rm -v $(pwd):/github/workspace ghcr.io/apache/skywalking-eyes/license-eye:eb0e0b091ea41213f712f622797e37526ca1e5d6 -v info -c .licenserc.yaml header fix
+#
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: DataRobot, Inc.
+    content: |-
+
+     Copyright 2026 DataRobot, Inc. and its affiliates.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+
+  paths:
+    # do NOT modify the next line as it is used by write-license-config.sh in CI
+    # INSERT_FILES_FROM_PULL_REQUEST_HERE
+    - src/genai_tools/drtools/
+
+  paths-ignore:
+    - 'build/'
+    - '__init__.py'
+    - 'local/'
+    - 'dist/'
+    - 'uv.lock'
+    - 'venv/'
+    - '.idea/'
+    - '.vscode/'
+    - '.ruff_cache/'
+    - '.mypy_cache/'
+    - '.github/**'
+    - '**/*.yaml'
+    - '**/*.yml'
+    - '.licenserc.yaml'
+    - '.licenserc.yaml.temp'
+    - 'AUTHORS'
+    - 'LICENSE'
+    - 'README.md'
+    - 'CHANGELOG.md'
+    - 'CODE_OF_CONDUCT.md'
+    - 'CONTRIBUTING.md'
+    - 'Makefile'
+    - 'pyproject.toml'
+    - 'write-license-config.sh'
+    - '.gitignore'
+    - '.pre-commit-config.yaml'
+    - '.taskfiles/**'
+    - 'py.typed'
+    - '**/*.csv'
+    - '**/*.json'
+    - '.cursor/**'
+    - '**/.env*'
+
+  comment: on-failure
