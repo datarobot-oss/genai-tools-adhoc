@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "genai-tools"
+version = "0.1.0"
+description = "GenAI adhoc tools"
+readme = "README.md"
+requires-python = ">=3.10, <3.14"
+license = { text = "Apache-2.0" }
+authors = [{ name = "DataRobot, Inc." }]
+dynamic = ["optional-dependencies"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/YOUR_ORG/genai-tools-adhoc"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+genai_tools = ["py.typed"]
+
+[tool.uv]
+package = true
+override-dependencies = [
+  "ragas>=0.3.8,<0.4.0",
+  "onnxruntime==1.23.1; python_version == '3.10'",
+]
+exclude-dependencies = [
+  "uv",
+]
+
+[dependency-groups]
+dev = [
+  "ruff>=0.6.0",
+  "mypy>=1.10.0",
+  "pytest",
+  "pytest-cov",
+  "pre-commit",
+  "twine>=5.0.0",
+  "pytest-asyncio>=0.23.5",
+  "responses>=0.25.8",
+  "ipdb>=0.13.13",
+  "aioresponses>=0.7.8",
+]
+
+[tool.mypy]
+disallow_untyped_defs = true
+disable_error_code = ["import-untyped"]
+ignore_missing_imports = true
+pretty = true
+show_absolute_path = true
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "N", "D", "PL", "UP", "INP", "B006",
+]
+extend-ignore = [
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106",
+    "D205", "PLR0913", "PLR0915", "PLR0912",
+]
+fixable = ["I", "D", "UP", "F401"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["D104", "F401"]
+"scripts/*.py" = ["INP001", "E402", "I001", "PLC0415"]
+"src/genai_tools/**/*.py" = ["PLC0415"]
+"tests/**/*.py" = ["PLC0415", "PLR2004"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.pylint]
+allow-magic-value-types = ["int", "str", "bytes"]
+max-args = 8
+
+[tool.pytest.ini_options]
+filterwarnings = []
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["genai_tools"]
+omit = [
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "raise NotImplementedError",
+    "pass",
+]
+fail_under = 80

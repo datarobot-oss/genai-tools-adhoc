@@ -1,0 +1,43 @@
+---
+# https://taskfile.dev
+version: '3'
+
+dotenv: [".env"]
+
+env:
+  PARENT_ENV: true
+
+vars:
+  PROJECT_SRC: "./src"
+  TESTS_SRC: "./tests"
+
+includes:
+  lint:
+    taskfile: .taskfiles/lint.yml
+    flatten: true
+  license:
+    taskfile: .taskfiles/license.yml
+    flatten: true
+  env:
+    taskfile: .taskfiles/env.yml
+    flatten: true
+  release:
+    taskfile: .taskfiles/release.yml
+    flatten: true
+
+tasks:
+  install:
+    desc: "🔧 Install dependencies (all extras)"
+    cmds:
+      - echo "🔧 Installing dependencies (all extras)..."
+      - uv sync --all-extras --dev
+    silent: true
+
+  build:
+    desc: "Build distribution packages"
+    cmds:
+      - task: install
+      - echo "Building distribution packages..."
+      - rm -rf dist/
+      - uv build
+      - echo "Build complete! Distribution files in dist/"
