@@ -47,7 +47,7 @@ jobs:
 
       - name: Ensure version not on PyPI
         run: |
-          PKG_NAME=genai-tools
+          PKG_NAME=genai-tools-adhoc
           VERSION=$(grep -E '^[[:space:]]*version[[:space:]]*=' -m1 pyproject.toml | sed -E 's/.*"([^"]+)".*/\1/')
           echo "Version to release: $VERSION"
           if curl -fsSL "https://pypi.org/pypi/${PKG_NAME}/json" | jq -e --arg v "$VERSION" '.releases | has($v)' >/dev/null; then
