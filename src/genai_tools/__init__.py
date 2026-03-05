@@ -11,6 +11,6 @@ __all__ = [
 ]
 
 try:
-    __version__ = version("genai-tools")
+    __version__ = version("genai-tools-adhoc")
 except PackageNotFoundError:  # pragma: no cover - during local dev without install
     __version__ = "0.0.0"

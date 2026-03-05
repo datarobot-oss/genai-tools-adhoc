@@ -925,7 +925,7 @@ wheels = [
 ]
 
 [[package]]
-name = "genai-tools"
+name = "genai-tools-adhoc"
 version = "0.1.0"
 source = { editable = "." }
 
@@ -946,6 +946,7 @@ drtools = [
     { name = "pymilvus" },
     { name = "pypdf" },
     { name = "python-dotenv" },
+    { name = "requests" },
     { name = "tavily-python" },
     { name = "typing-extensions" },
 ]
@@ -981,6 +982,7 @@ requires-dist = [
     { name = "pymilvus", marker = "extra == 'drtools'", specifier = ">=2.4.0,<3.0.0" },
     { name = "pypdf", marker = "extra == 'drtools'", specifier = ">=6.6.2,<7.0.0" },
     { name = "python-dotenv", marker = "extra == 'drtools'", specifier = ">=1.1.0,<2.0.0" },
+    { name = "requests", marker = "extra == 'drtools'", specifier = ">=2.27.1,<3.0.0" },
     { name = "tavily-python", marker = "extra == 'drtools'", specifier = ">=0.7.20,<1.0.0" },
     { name = "typing-extensions", marker = "extra == 'drtools'", specifier = ">=4.0.0" },
 ]
