@@ -155,6 +155,63 @@ async def milvus_search(
     )
 
 
+@custom_mcp_tool(tags={"milvus", "database", "list"})
+def milvus_list_databases() -> ToolResult:
+    """
+    List all Milvus database names.
+
+    Use this to see which databases exist before creating a new one or switching
+    (via x-milvus-db / X_MILVUS_DB_ENV_VAR) to query collections.
+
+    Usage:
+        - milvus_list_databases()
+
+    Note:
+        Documentation: https://milvus.io/docs/manage_databases.md
+    """
+    try:
+        config = get_milvus_access_configs()
+    except ToolError:
+        raise
+
+    with MilvusClientWrapper(config) as client:
+        databases = client.list_databases()
+
+    return ToolResult(structured_content={"databases": databases})
+
+
+@custom_mcp_tool(tags={"milvus", "database", "create"})
+def milvus_create_database(
+    *,
+    db_name: Annotated[str, "The name of the new database to create."],
+) -> ToolResult:
+    """
+    Create a new Milvus database if it does not already exist.
+
+    After creation, set x-milvus-db (or X_MILVUS_DB_ENV_VAR) to this name to use
+    it for subsequent operations (create collection, insert, search).
+
+    Usage:
+        - milvus_create_database(db_name="db1")
+
+    Note:
+        Idempotent: returns status 'exists' if the database is already present.
+        Documentation: https://milvus.io/docs/manage_databases.md
+    """
+    if not db_name or not str(db_name).strip():
+        raise ToolError("Validation Error: 'db_name' is required and non-empty.")
+
+    try:
+        config = get_milvus_access_configs()
+    except ToolError:
+        raise
+
+    with MilvusClientWrapper(config) as client:
+        out = client.create_database(db_name=db_name.strip())
+
+    return ToolResult(structured_content=out)
+
+
 @custom_mcp_tool(tags={"milvus", "create", "collection", "schema"})
 def milvus_create_collection(
     *,
@@ -255,6 +312,63 @@ def milvus_insert_data(
 
     with MilvusClientWrapper(config) as client:
         out = client.insert_data(collection_name=collection_name, data=data)
+
+    return ToolResult(structured_content=out)
+
+
+@custom_mcp_tool(tags={"milvus", "index", "load", "ready"})
+def milvus_ensure_index_and_load(
+    *,
+    collection_name: Annotated[str, "The collection to flush, index (if needed), and load."],
+    vector_field: Annotated[str, "The vector field to index (default 'vector')."] = "vector",
+    index_type: Annotated[
+        str,
+        "Index type (e.g. IVF_FLAT, HNSW). Default IVF_FLAT.",
+    ] = "IVF_FLAT",
+    metric_type: Annotated[
+        Literal["COSINE", "L2", "IP"],
+        "Similarity metric for the vector index.",
+    ] = "COSINE",
+    nlist: Annotated[
+        int,
+        "IVF index nlist parameter (number of clusters). Default 16.",
+    ] = 16,
+) -> ToolResult:
+    """
+    Flush a collection, create an index on the vector field if missing, then load it.
+
+    Call this after inserting data so the collection can be queried and searched.
+    Idempotent: safe to run multiple times; skips index creation if already present
+    and handles already-loaded collections.
+
+    Usage:
+        - milvus_ensure_index_and_load(
+            collection_name="products",
+            vector_field="vector",
+            index_type="IVF_FLAT",
+            metric_type="COSINE",
+            nlist=16
+          )
+
+    Note:
+        Documentation: https://milvus.io/docs/create_index.md and https://milvus.io/docs/load_collection.md
+    """
+    if not collection_name:
+        raise ToolError("Validation Error: 'collection_name' is required.")
+
+    try:
+        config = get_milvus_access_configs()
+    except ToolError:
+        raise
+
+    with MilvusClientWrapper(config) as client:
+        out = client.ensure_index_and_load(
+            collection_name=collection_name,
+            vector_field=vector_field,
+            index_type=index_type,
+            metric_type=metric_type,
+            nlist=nlist,
+        )
 
     return ToolResult(structured_content=out)
 

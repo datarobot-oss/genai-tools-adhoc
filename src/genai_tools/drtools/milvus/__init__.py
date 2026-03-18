@@ -13,15 +13,21 @@
 # limitations under the License.
 
 from genai_tools.drtools.milvus.tools import milvus_create_collection
+from genai_tools.drtools.milvus.tools import milvus_create_database
+from genai_tools.drtools.milvus.tools import milvus_ensure_index_and_load
 from genai_tools.drtools.milvus.tools import milvus_insert_data
 from genai_tools.drtools.milvus.tools import milvus_inspect_collections
+from genai_tools.drtools.milvus.tools import milvus_list_databases
 from genai_tools.drtools.milvus.tools import milvus_query
 from genai_tools.drtools.milvus.tools import milvus_search
 
 __all__ = [
     "milvus_search",
     "milvus_create_collection",
+    "milvus_create_database",
+    "milvus_ensure_index_and_load",
     "milvus_insert_data",
     "milvus_inspect_collections",
+    "milvus_list_databases",
     "milvus_query",
 ]
