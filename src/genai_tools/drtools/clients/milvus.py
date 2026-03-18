@@ -222,6 +222,90 @@ class MilvusClientWrapper:
     ) -> None:
         self.close()
 
+    def list_databases(self) -> list[str]:
+        """List all database names. Works at server level regardless of current using_database."""
+        try:
+            names = self._client.list_databases()
+            return list(names) if names else []
+        except Exception as e:
+            logger.exception("Milvus list_databases failed: %s", e)
+            raise ToolError(f"Milvus list_databases failed: {e}") from e
+
+    def create_database(self, db_name: str) -> dict[str, Any]:
+        """Create a new database if it does not exist. Does not switch the current db."""
+        if not db_name or not str(db_name).strip():
+            raise ToolError("Validation Error: 'db_name' is required and non-empty.")
+        try:
+            self._client.create_database(db_name=db_name.strip())
+        except MilvusException as e:
+            msg = (e.message or str(e)).lower()
+            if "already exist" in msg or "exist" in msg:
+                return {"status": "exists", "database": db_name.strip()}
+            logger.exception("Milvus create_database failed: %s", e)
+            raise ToolError(f"Milvus create_database failed: {e}") from e
+        except Exception as e:
+            logger.exception("Milvus create_database failed: %s", e)
+            raise ToolError(f"Milvus create_database failed: {e}") from e
+        return {"status": "created", "database": db_name.strip()}
+
+    def ensure_index_and_load(
+        self,
+        collection_name: str,
+        vector_field: str = "vector",
+        index_type: str = "IVF_FLAT",
+        metric_type: Literal["COSINE", "L2", "IP"] = "COSINE",
+        nlist: int = 16,
+        **index_params_extra: Any,
+    ) -> dict[str, Any]:
+        """
+        Flush the collection, create an index on the vector field if missing, then load.
+
+        Idempotent: safe to call multiple times. Required before vector/search queries.
+        """
+        try:
+            self._client.flush(collection_name=collection_name)
+        except Exception as e:
+            logger.exception("Milvus flush failed for %s: %s", collection_name, e)
+            raise ToolError(f"Milvus flush failed: {e}") from e
+        existing_indexes = self._client.list_indexes(collection_name=collection_name) or []
+        if vector_field not in existing_indexes:
+            params = {"nlist": nlist, **index_params_extra}
+            index_params = self._client.prepare_index_params()
+            index_params.add_index(
+                field_name=vector_field,
+                index_type=index_type,
+                metric_type=metric_type,
+                params=params,
+            )
+            try:
+                self._client.create_index(
+                    collection_name=collection_name, index_params=index_params
+                )
+            except Exception as e:
+                logger.exception("Milvus create_index failed for %s: %s", collection_name, e)
+                raise ToolError(f"Milvus create_index failed: {e}") from e
+        try:
+            self._client.load_collection(collection_name=collection_name)
+        except MilvusException as e:
+            msg = (e.message or str(e)).lower()
+            if "already loaded" in msg:
+                return {
+                    "status": "ready",
+                    "collection": collection_name,
+                    "index_created": vector_field not in existing_indexes,
+                    "loaded": True,
+                }
+            raise ToolError(f"Milvus load_collection failed: {e}") from e
+        except Exception as e:
+            logger.exception("Milvus load_collection failed for %s: %s", collection_name, e)
+            raise ToolError(f"Milvus load_collection failed: {e}") from e
+        return {
+            "status": "ready",
+            "collection": collection_name,
+            "index_created": vector_field not in existing_indexes,
+            "loaded": True,
+        }
+
     def search(
         self,
         collection_name: str,
